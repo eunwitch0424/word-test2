@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영어 단어 학습 프로그램</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .screen {
+            display: none;
+        }
+        
+        .screen.active {
+            display: block;
+        }
+        
+        .menu-btn {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 18px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .menu-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+        }
+        
+        .input-group {
+            margin: 20px 0;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            transition: border-color 0.3s;
+            min-height: 200px;
+            font-family: 'Malgun Gothic', sans-serif;
+        }
+        
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .word-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .word-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .word-item.correct {
+            border-left: 4px solid #28a745;
+            background: #d4edda;
+        }
+        
+        .word-item.wrong {
+            border-left: 4px solid #dc3545;
+            background: #f8d7da;
+        }
+        
+        .result-icon {
+            font-weight: bold;
+            font-size: 20px;
+            margin-right: 10px;
+        }
+        
+        .result-icon.correct {
+            color: #28a745;
+        }
+        
+        .result-icon.wrong {
+            color: #dc3545;
+        }
+        
+        .word-content {
+            flex: 1;
+        }
+        
+        .user-answer {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .word-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-edit {
+            background: #ffc107;
+            color: white;
+        }
+        
+        .btn-edit:hover {
+            background: #e0a800;
+        }
+        
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-delete:hover {
+            background: #c82333;
+        }
+        
+        .edit-form {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .edit-form.active {
+            display: block;
+        }
+        
+        .edit-form input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .table-container {
+            margin: 20px 0;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .word-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .word-table thead {
+            background: #667eea;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .word-table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .word-table td {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .word-table input {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .word-table input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .word-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .add-row-btn {
+            margin-top: 10px;
+            padding: 8px 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .add-row-btn:hover {
+            background: #218838;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .modal-body {
+            margin: 20px 0;
+        }
+        
+        .modal-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        
+        .modal-label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .modal-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .modal-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        
+        .day-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .day-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .quiz-card {
+            text-align: center;
+            padding: 40px 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+        
+        .quiz-word {
+            font-size: 48px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0;
+        }
+        
+        .quiz-counter {
+            font-size: 18px;
+            color: #6c757d;
+            margin-bottom: 20px;
+        }
+        
+        .result {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        
+        .result.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        
+        .result.wrong {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+        
+        .result.similar {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeeba;
+        }
+        
+        .score-display {
+            text-align: center;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+        
+        .score-number {
+            font-size: 48px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0;
+        }
+        
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            text-align: center;
+            white-space: pre-line;
+        }
+        
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .day-select {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .day-card {
+            padding: 20px;
+            text-align: center;
+            background: #667eea;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .day-card:hover {
+            background: #5568d3;
+            transform: scale(1.05);
+        }
+        
+        .day-card-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .day-card-count {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 10px;
+                margin: 0;
+            }
+            
+            .container {
+                box-shadow: none;
+                max-width: 100%;
+                padding: 10px;
+            }
+            
+            .btn, .btn-small, .word-actions, .edit-form {
+                display: none !important;
+            }
+            
+            .screen {
+                display: none !important;
+            }
+            
+            .screen.active {
+                display: block !important;
+            }
+            
+            h1 {
+                display: none;
+            }
+            
+            h2 {
+                color: black;
+                font-size: 16px;
+                margin: 5px 0 10px 0;
+                padding-bottom: 5px;
+                border-bottom: 2px solid #333;
+            }
+            
+            .word-list {
+                margin: 0;
+                padding: 0;
+                max-height: none;
+                overflow: visible;
+            }
+            
+            .word-item {
+                page-break-inside: avoid;
+                border: none;
+                border-bottom: 1px solid #ddd;
+                margin: 0;
+                padding: 4px 0;
+                background: none !important;
+                display: table;
+                width: 100%;
+                table-layout: fixed;
+            }
+            
+            .word-item:last-child {
+                border-bottom: none;
+            }
+            
+            .word-content {
+                font-size: 11px;
+                line-height: 1.3;
+                display: table-row;
+            }
+            
+            .word-content > div {
+                display: table-cell;
+                padding: 2px 5px;
+                vertical-align: top;
+            }
+            
+            .word-english {
+                width: 30%;
+                font-weight: bold;
+            }
+            
+            .word-meaning {
+                width: 70%;
+            }
+            
+            @page {
+                margin: 15mm;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>영어 단어 학습 프로그램</h1>
+        
+        <div id="mainMenu" class="screen active">
+            <button class="menu-btn" onclick="showScreen('addWords')">단어 입력 (개별)</button>
+            <button class="menu-btn" onclick="showScreen('bulkAdd')">단어 입력 (여러개)</button>
+            <button class="menu-btn" onclick="showScreen('selectDay')">퀴즈 시작</button>
+            <button class="menu-btn" onclick="showScreen('viewWords')">단어 목록 보기 (전체)</button>
+            <button class="menu-btn" onclick="showScreen('selectDayForView')">단어 목록 보기 (DAY별)</button>
+        </div>
+        
+        <div id="addWords" class="screen">
+            <h2>단어 입력 (개별)</h2>
+            <div class="input-group">
+                <label>DAY 번호</label>
+                <input type="text" id="dayInput" placeholder="예: 1, 2, 3...">
+            </div>
+            <div class="input-group">
+                <label>영어 단어</label>
+                <input type="text" id="englishInput" placeholder="예: run">
+            </div>
+            <div class="input-group">
+                <label>한글 뜻 (여러 뜻은 쉼표로 구분)</label>
+                <input type="text" id="koreanInput" placeholder="예: 달리다, 운영하다, 경영하다">
+            </div>
+            <div id="addMessage"></div>
+            <button class="btn btn-primary" onclick="addWord()">추가</button>
+            <button class="btn btn-secondary" onclick="showScreen('mainMenu')">메뉴로</button>
+        </div>
+        
+        <div id="bulkAdd" class="screen">
+            <h2>단어 입력 (여러개)</h2>
+            <div class="input-group">
+                <label>DAY 번호</label>
+                <input type="text" id="bulkDayInput" placeholder="예: 1, 2, 3...">
+            </div>
+            <div class="table-container">
+                <table class="word-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40%">영어 단어</th>
+                            <th style="width: 60%">한글 뜻 (여러 뜻은 쉼표로 구분)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="wordTableBody">
+                    </tbody>
+                </table>
+            </div>
+            <button class="add-row-btn" onclick="addTableRow()">+ 행 추가</button>
+            <div id="bulkMessage"></div>
+            <button class="btn btn-primary" onclick="bulkAddWordsFromTable()">일괄 추가</button>
+            <button class="btn btn-secondary" onclick="showScreen('mainMenu')">메뉴로</button>
+        </div>
+        
+        <div id="selectDay" class="screen">
+            <h2>DAY 선택</h2>
+            <div id="dayList" class="day-select"></div>
+            <button class="btn btn-secondary" onclick="showScreen('mainMenu')">메뉴로</button>
+        </div>
+        
+        <div id="quiz" class="screen">
+            <div class="quiz-card">
+                <div class="quiz-counter" id="quizCounter"></div>
+                <div class="quiz-word" id="quizWord"></div>
+                <div class="input-group">
+                    <input type="text" id="answerInput" placeholder="한글 뜻을 입력하세요">
+                </div>
+                <div id="quizFeedback"></div>
+                <button class="btn btn-primary" onclick="checkAnswer()">확인</button>
+                <button class="btn btn-secondary" onclick="stopQuiz()">그만하기</button>
+            </div>
+        </div>
+        
+        <div id="quizResultScreen" class="screen">
+            <h2>퀴즈 결과</h2>
+            <div class="score-display">
+                <div>DAY <span id="resultDay"></span></div>
+                <div class="score-number" id="resultScore"></div>
+                <div id="resultPercent"></div>
+                <div id="resultWrong" style="font-size: 16px; color: #dc3545; margin-top: 10px;"></div>
+            </div>
+            <div id="wrongWordsSection" style="margin: 20px 0;">
+                <h3 style="color: #dc3545;">틀린 단어</h3>
+                <div id="wrongWordsList" class="word-list"></div>
+            </div>
+            <div id="resultDetailsToggle" style="margin: 20px 0;">
+                <button class="btn btn-secondary" onclick="toggleAllResults()">전체 결과 보기</button>
+            </div>
+            <div id="resultDetails" class="word-list" style="display: none;"></div>
+            <div id="retrySection" style="margin: 20px 0;">
+                <button class="btn btn-primary" onclick="retryWrongWords()" id="retryButton">틀린 단어 다시 풀기</button>
+                <button class="btn btn-secondary" onclick="showScreen('mainMenu')">메뉴로</button>
+            </div>
+        </div>
+        
+        <div id="viewWords" class="screen">
+            <h2>저장된 단어 목록 (전체)</h2>
+            <div id="wordsList" class="word-list"></div>
+            <button class="btn btn-secondary" onclick="showScreen('mainMenu')">메뉴로</button>
+        </div>
+        
+        <div id="selectDayForView" class="screen">
+            <h2>단어 목록 볼 DAY 선택</h2>
+            <div id="dayListForView" class="day-select"></div>
+            <button class="btn btn-secondary" onclick="showScreen('mainMenu')">메뉴로</button>
+        </div>
+        
+        <div id="viewDayWords" class="screen">
+            <h2 id="dayWordsTitle">DAY 단어 목록</h2>
+            <div id="dayWordsList" class="word-list"></div>
+            <button class="btn btn-primary" onclick="printDayWords()">인쇄하기</button>
+            <button class="btn btn-secondary" onclick="showScreen('selectDayForView')">뒤로</button>
+            <button class="btn btn-secondary" onclick="showScreen('mainMenu')">메뉴로</button>
+        </div>
+    </div>
+
+    <div id="duplicateModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">중복 단어 발견</div>
+            <div class="modal-body">
+                <div class="modal-info">
+                    <div class="modal-label">영어 단어:</div>
+                    <div id="modalEnglish"></div>
+                </div>
+                <div class="modal-info">
+                    <div class="modal-label">기존 뜻:</div>
+                    <div id="modalOldMeaning"></div>
+                </div>
+                <div class="modal-info">
+                    <div class="modal-label">새로운 뜻:</div>
+                    <div id="modalNewMeaning"></div>
+                </div>
+                <div style="margin: 20px 0;">
+                    <strong>어떻게 하시겠습니까?</strong>
+                </div>
+                <div style="margin: 10px 0;">
+                    <label style="display: block; margin: 5px 0;">
+                        <input type="radio" name="duplicateAction" value="replace" checked>
+                        새로운 뜻으로 완전히 교체
+                    </label>
+                    <label style="display: block; margin: 5px 0;">
+                        <input type="radio" name="duplicateAction" value="add">
+                        기존 뜻에 새로운 뜻 추가
+                    </label>
+                    <label style="display: block; margin: 5px 0;">
+                        <input type="radio" name="duplicateAction" value="skip">
+                        건너뛰기 (변경하지 않음)
+                    </label>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" onclick="confirmDuplicateAction()">확인</button>
+                <button class="btn btn-secondary" onclick="closeDuplicateModal()">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let words = {};
+        let currentQuiz = {
+            day: null,
+            wordList: [],
+            currentIndex: 0,
+            correctCount: 0,
+            results: []
+        };
+        
+        let duplicateModalData = {
+            day: null,
+            english: null,
+            newMeaning: null,
+            callback: null
+        };
+
+        const PART_OF_SPEECH_KEYWORDS = {};
+
+        function loadWords() {
+            const saved = localStorage.getItem('englishWords');
+            if (saved) {
+                words = JSON.parse(saved);
+            }
+        }
+
+        function saveWords() {
+            localStorage.setItem('englishWords', JSON.stringify(words));
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+            
+            if (screenId === 'selectDay') {
+                displayDayList();
+            } else if (screenId === 'viewWords') {
+                displayWordsList();
+            } else if (screenId === 'addWords') {
+                document.getElementById('addMessage').innerHTML = '';
+            } else if (screenId === 'bulkAdd') {
+                document.getElementById('bulkMessage').innerHTML = '';
+                initializeTable();
+            } else if (screenId === 'selectDayForView') {
+                displayDayListForView();
+            }
+        }
+
+        function initializeTable() {
+            const tbody = document.getElementById('wordTableBody');
+            tbody.innerHTML = '';
+            for (let i = 0; i < 10; i++) {
+                addTableRow();
+            }
+        }
+
+        function addTableRow() {
+            const tbody = document.getElementById('wordTableBody');
+            const row = document.createElement('tr');
+            const rowIndex = tbody.children.length;
+            
+            row.innerHTML = `
+                <td><input type="text" id="english-${rowIndex}" placeholder="예: run"></td>
+                <td><input type="text" id="korean-${rowIndex}" placeholder="예: 달리다, 운영하다"></td>
+            `;
+            
+            tbody.appendChild(row);
+            
+            const englishInput = document.getElementById(`english-${rowIndex}`);
+            englishInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById(`korean-${rowIndex}`).focus();
+                } else if (e.key === 'Tab' && !e.shiftKey) {
+                    e.preventDefault();
+                    document.getElementById(`korean-${rowIndex}`).focus();
+                }
+            });
+            
+            const koreanInput = document.getElementById(`korean-${rowIndex}`);
+            koreanInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (rowIndex === tbody.children.length - 1) {
+                        addTableRow();
+                    }
+                    setTimeout(() => {
+                        document.getElementById(`english-${rowIndex + 1}`).focus();
+                    }, 0);
+                } else if (e.key === 'Tab' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (rowIndex === tbody.children.length - 1) {
+                        addTableRow();
+                    }
+                    setTimeout(() => {
+                        document.getElementById(`english-${rowIndex + 1}`).focus();
+                    }, 0);
+                }
+            });
+        }
+
+        function addWord() {
+            const day = document.getElementById('dayInput').value.trim();
+            const english = document.getElementById('englishInput').value.trim();
+            const korean = document.getElementById('koreanInput').value.trim();
+            
+            if (!day || !english || !korean) {
+                showMessage('addMessage', '모든 항목을 입력해주세요.', 'error');
+                return;
+            }
+            
+            if (!words[day]) {
+                words[day] = {};
+            }
+            
+            if (words[day][english] !== undefined) {
+                showDuplicateModal(day, english, korean, (action, finalMeaning) => {
+                    if (action !== 'skip') {
+                        words[day][english] = finalMeaning;
+                        saveWords();
+                        showMessage('addMessage', `'${english}' 단어가 업데이트되었습니다.`, 'success');
+                    } else {
+                        showMessage('addMessage', '변경하지 않았습니다.', 'error');
+                    }
+                    document.getElementById('englishInput').value = '';
+                    document.getElementById('koreanInput').value = '';
+                    document.getElementById('englishInput').focus();
+                });
+            } else {
+                words[day][english] = korean;
+                saveWords();
+                showMessage('addMessage', `'${english}' 단어가 DAY ${day}에 추가되었습니다.`, 'success');
+                document.getElementById('englishInput').value = '';
+                document.getElementById('koreanInput').value = '';
+                document.getElementById('englishInput').focus();
+            }
+        }
+
+        async function bulkAddWordsFromTable() {
+            const day = document.getElementById('bulkDayInput').value.trim();
+            
+            if (!day) {
+                showMessage('bulkMessage', 'DAY 번호를 입력해주세요.', 'error');
+                return;
+            }
+            
+            if (!words[day]) {
+                words[day] = {};
+            }
+            
+            const tbody = document.getElementById('wordTableBody');
+            const rows = tbody.getElementsByTagName('tr');
+            
+            let successCount = 0;
+            let updateCount = 0;
+            let skipCount = 0;
+            let errorLines = [];
+            const processedWords = new Set();
+            
+            for (let i = 0; i < rows.length; i++) {
+                const englishInput = document.getElementById(`english-${i}`);
+                const koreanInput = document.getElementById(`korean-${i}`);
+                
+                if (!englishInput || !koreanInput) continue;
+                
+                const english = englishInput.value.trim();
+                const korean = koreanInput.value.trim();
+                
+                if (!english && !korean) continue;
+                
+                if (!english || !korean) {
+                    errorLines.push(`${i + 1}번째 줄: 영어 단어와 한글 뜻을 모두 입력해주세요`);
+                    continue;
+                }
+                
+                if (processedWords.has(english)) {
+                    errorLines.push(`${i + 1}번째 줄: 중복된 단어 '${english}'`);
+                    continue;
+                }
+                
+                processedWords.add(english);
+                
+                if (words[day][english] !== undefined) {
+                    const result = await showDuplicateModalAsync(day, english, korean);
+                    if (result.action === 'skip') {
+                        skipCount++;
+                    } else {
+                        words[day][english] = result.meaning;
+                        updateCount++;
+                    }
+                } else {
+                    words[day][english] = korean;
+                    successCount++;
+                }
+            }
+            
+            saveWords();
+            
+            let message = '';
+            if (successCount > 0) {
+                message += `${successCount}개 단어가 DAY ${day}에 추가되었습니다.`;
+            }
+            if (updateCount > 0) {
+                if (message) message += '\n';
+                message += `${updateCount}개 단어가 업데이트되었습니다.`;
+            }
+            if (skipCount > 0) {
+                if (message) message += '\n';
+                message += `${skipCount}개 단어를 건너뛰었습니다.`;
+            }
+            if (errorLines.length > 0) {
+                message += `\n\n오류 ${errorLines.length}개:\n` + errorLines.join('\n');
+            }
+            
+            showMessage('bulkMessage', message, (successCount > 0 || updateCount > 0) ? 'success' : 'error');
+            
+            if (successCount > 0 || updateCount > 0) {
+                initializeTable();
+            }
+        }
+
+        function showDuplicateModal(day, english, newMeaning, callback) {
+            duplicateModalData.day = day;
+            duplicateModalData.english = english;
+            duplicateModalData.newMeaning = newMeaning;
+            duplicateModalData.callback = callback;
+            
+            document.getElementById('modalEnglish').textContent = english;
+            document.getElementById('modalOldMeaning').textContent = words[day][english];
+            document.getElementById('modalNewMeaning').textContent = newMeaning;
+            
+            document.querySelector('input[name="duplicateAction"][value="replace"]').checked = true;
+            
+            document.getElementById('duplicateModal').classList.add('active');
+        }
+
+        function showDuplicateModalAsync(day, english, newMeaning) {
+            return new Promise((resolve) => {
+                showDuplicateModal(day, english, newMeaning, (action, meaning) => {
+                    resolve({ action, meaning });
+                });
+            });
+        }
+
+        function confirmDuplicateAction() {
+            const action = document.querySelector('input[name="duplicateAction"]:checked').value;
+            const { day, english, newMeaning, callback } = duplicateModalData;
+            
+            let finalMeaning;
+            
+            if (action === 'replace') {
+                finalMeaning = newMeaning;
+            } else if (action === 'add') {
+                const oldMeaning = words[day][english];
+                const oldMeanings = oldMeaning.split(',').map(m => m.trim());
+                const newMeanings = newMeaning.split(',').map(m => m.trim());
+                const combinedMeanings = [...new Set([...oldMeanings, ...newMeanings])];
+                finalMeaning = combinedMeanings.join(', ');
+            } else {
+                finalMeaning = words[day][english];
+            }
+            
+            if (callback) {
+                callback(action, finalMeaning);
+            }
+            
+            closeDuplicateModal();
+        }
+
+        function closeDuplicateModal() {
+            document.getElementById('duplicateModal').classList.remove('active');
+            duplicateModalData = {
+                day: null,
+                english: null,
+                newMeaning: null,
+                callback: null
+            };
+        }
+
+        function displayDayList() {
+            const dayList = document.getElementById('dayList');
+            dayList.innerHTML = '';
+            
+            if (Object.keys(words).length === 0) {
+                dayList.innerHTML = '<p>저장된 단어가 없습니다.</p>';
+                return;
+            }
+            
+            const days = Object.keys(words).sort((a, b) => {
+                const numA = parseInt(a);
+                const numB = parseInt(b);
+                return numA - numB;
+            });
+            
+            days.forEach(day => {
+                const count = Object.keys(words[day]).length;
+                const dayCard = document.createElement('div');
+                dayCard.className = 'day-card';
+                dayCard.innerHTML = `
+                    <div class="day-card-title">DAY ${day}</div>
+                    <div class="day-card-count">${count}개 단어</div>
+                `;
+                dayCard.onclick = () => startQuiz(day);
+                dayList.appendChild(dayCard);
+            });
+        }
+
+        function startQuiz(day) {
+            if (!words[day] || Object.keys(words[day]).length === 0) {
+                alert('해당 DAY에 단어가 없습니다.');
+                return;
+            }
+            
+            currentQuiz.day = day;
+            currentQuiz.wordList = Object.entries(words[day]).sort(() => Math.random() - 0.5);
+            currentQuiz.currentIndex = 0;
+            currentQuiz.correctCount = 0;
+            currentQuiz.results = [];
+            
+            showScreen('quiz');
+            showNextQuestion();
+        }
+
+        function showNextQuestion() {
+            if (currentQuiz.currentIndex >= currentQuiz.wordList.length) {
+                showQuizResult();
+                return;
+            }
+            
+            const [english] = currentQuiz.wordList[currentQuiz.currentIndex];
+            document.getElementById('quizCounter').textContent = 
+                `${currentQuiz.currentIndex + 1} / ${currentQuiz.wordList.length}`;
+            document.getElementById('quizWord').textContent = english;
+            document.getElementById('answerInput').value = '';
+            document.getElementById('quizFeedback').innerHTML = '';
+            document.getElementById('answerInput').focus();
+        }
+
+        function normalizeMeaning(text) {
+            text = text.trim();
+            text = text.replace(/\([^)]*\)/g, '');
+            text = text.replace(/[^\wㄱ-ㅎㅏ-ㅣ가-힣\s,]/g, '');
+            text = text.replace(/\s+/g, ' ').trim();
+            return text;
+        }
+
+        function checkSimilarMeaning(answer, correctAnswer) {
+            const answerNormalized = normalizeMeaning(answer);
+            const correctNormalized = normalizeMeaning(correctAnswer);
+            
+            const correctMeanings = correctNormalized.split(',').map(m => m.trim()).filter(m => m);
+            
+            for (const correctMeaning of correctMeanings) {
+                if (answerNormalized === correctMeaning) {
+                    return { isCorrect: true, reason: '정확한 답' };
+                }
+                
+                const answerWords = new Set(answerNormalized.split(' '));
+                const correctWords = new Set(correctMeaning.split(' '));
+                const commonWords = [...answerWords].filter(word => correctWords.has(word) && word);
+                
+                if (commonWords.length > 0 && commonWords.length >= Math.max(1, correctWords.size * 0.6)) {
+                    return { isCorrect: true, reason: '유사한 답' };
+                }
+            }
+            
+            return { isCorrect: false, reason: null };
+        }
+
+        function checkAnswer() {
+            const answer = document.getElementById('answerInput').value.trim();
+            if (!answer) {
+                alert('답을 입력해주세요.');
+                return;
+            }
+            
+            const [english, correctAnswer] = currentQuiz.wordList[currentQuiz.currentIndex];
+            const result = checkSimilarMeaning(answer, correctAnswer);
+            
+            currentQuiz.results.push({
+                english: english,
+                correctAnswer: correctAnswer,
+                userAnswer: answer,
+                isCorrect: result.isCorrect
+            });
+            
+            const resultDiv = document.getElementById('quizFeedback');
+            
+            if (result.isCorrect) {
+                currentQuiz.correctCount++;
+                if (result.reason === '정확한 답') {
+                    resultDiv.innerHTML = `<div class="result correct">정답! (${result.reason})</div>`;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="result similar">
+                            정답! (${result.reason})<br>
+                            정확한 답: ${correctAnswer}
+                        </div>
+                    `;
+                }
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="result wrong">
+                        틀렸습니다. ${result.reason || ''}<br>
+                        정답: ${correctAnswer}
+                    </div>
+                `;
+            }
+            
+            currentQuiz.currentIndex++;
+            
+            setTimeout(() => {
+                showNextQuestion();
+            }, 2000);
+        }
+
+        function showQuizResult() {
+            const totalAttempted = currentQuiz.results.length;
+            const totalWords = currentQuiz.wordList.length;
+            const correct = currentQuiz.correctCount;
+            const wrong = totalAttempted - correct;
+            const percent = totalAttempted > 0 ? ((correct / totalAttempted) * 100).toFixed(1) : 0;
+            
+            document.getElementById('resultDay').textContent = currentQuiz.day;
+            document.getElementById('resultScore').textContent = `${correct} / ${totalAttempted}`;
+            document.getElementById('resultPercent').textContent = `정답률: ${percent}%`;
+            document.getElementById('resultWrong').textContent = `틀린 단어: ${wrong}개`;
+            
+            if (totalAttempted < totalWords) {
+                document.getElementById('resultPercent').textContent += ` (${totalAttempted}/${totalWords} 문제 풀이)`;
+            }
+            
+            const wrongWordsList = document.getElementById('wrongWordsList');
+            wrongWordsList.innerHTML = '';
+            
+            const wrongWords = currentQuiz.results.filter(result => !result.isCorrect);
+            
+            const retryButton = document.getElementById('retryButton');
+            if (wrongWords.length === 0) {
+                const wrongWordsSection = document.getElementById('wrongWordsSection');
+                if (wrongWordsSection) {
+                    wrongWordsSection.style.display = 'none';
+                }
+                if (retryButton) {
+                    retryButton.style.display = 'none';
+                }
+            } else {
+                const wrongWordsSection = document.getElementById('wrongWordsSection');
+                if (wrongWordsSection) {
+                    wrongWordsSection.style.display = 'block';
+                }
+                if (retryButton) {
+                    retryButton.style.display = 'inline-block';
+                }
+                wrongWords.forEach((result) => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'word-item wrong';
+                    
+                    const icon = document.createElement('span');
+                    icon.className = 'result-icon wrong';
+                    icon.textContent = 'X';
+                    
+                    const content = document.createElement('div');
+                    content.className = 'word-content';
+                    content.innerHTML = `
+                        <div><strong>${result.english}</strong>: ${result.correctAnswer}</div>
+                        <div class="user-answer">입력한 답: ${result.userAnswer}</div>
+                    `;
+                    
+                    resultItem.appendChild(icon);
+                    resultItem.appendChild(content);
+                    wrongWordsList.appendChild(resultItem);
+                });
+            }
+            
+            const resultDetails = document.getElementById('resultDetails');
+            resultDetails.innerHTML = '';
+            
+            currentQuiz.results.forEach((result, index) => {
+                const resultItem = document.createElement('div');
+                resultItem.className = `word-item ${result.isCorrect ? 'correct' : 'wrong'}`;
+                
+                const icon = document.createElement('span');
+                icon.className = `result-icon ${result.isCorrect ? 'correct' : 'wrong'}`;
+                icon.textContent = result.isCorrect ? 'O' : 'X';
+                
+                const content = document.createElement('div');
+                content.className = 'word-content';
+                content.innerHTML = `
+                    <div><strong>${result.english}</strong>: ${result.correctAnswer}</div>
+                    <div class="user-answer">입력한 답: ${result.userAnswer}</div>
+                `;
+                
+                resultItem.appendChild(icon);
+                resultItem.appendChild(content);
+                resultDetails.appendChild(resultItem);
+            });
+            
+            showScreen('quizResultScreen');
+        }
+
+        function stopQuiz() {
+            if (currentQuiz.results.length === 0) {
+                if (confirm('아직 문제를 풀지 않았습니다. 메뉴로 돌아가시겠습니까?')) {
+                    showScreen('mainMenu');
+                }
+            } else {
+                if (confirm('지금까지 푼 문제의 결과를 확인하시겠습니까?')) {
+                    showQuizResult();
+                } else {
+                    showScreen('mainMenu');
+                }
+            }
+        }
+
+        function toggleAllResults() {
+            const resultDetails = document.getElementById('resultDetails');
+            const toggleButton = document.querySelector('#resultDetailsToggle button');
+            
+            if (resultDetails.style.display === 'none') {
+                resultDetails.style.display = 'block';
+                toggleButton.textContent = '전체 결과 숨기기';
+            } else {
+                resultDetails.style.display = 'none';
+                toggleButton.textContent = '전체 결과 보기';
+            }
+        }
+
+        function retryWrongWords() {
+            const wrongWords = currentQuiz.results.filter(result => !result.isCorrect);
+            
+            if (wrongWords.length === 0) {
+                alert('틀린 단어가 없습니다!');
+                return;
+            }
+            
+            currentQuiz.wordList = wrongWords.map(result => [result.english, result.correctAnswer]);
+            currentQuiz.wordList.sort(() => Math.random() - 0.5);
+            currentQuiz.currentIndex = 0;
+            currentQuiz.correctCount = 0;
+            currentQuiz.results = [];
+            
+            showScreen('quiz');
+            showNextQuestion();
+        }
+
+        function displayWordsList() {
+            const wordsList = document.getElementById('wordsList');
+            wordsList.innerHTML = '';
+            
+            if (Object.keys(words).length === 0) {
+                wordsList.innerHTML = '<p>저장된 단어가 없습니다.</p>';
+                return;
+            }
+            
+            const days = Object.keys(words).sort((a, b) => {
+                const numA = parseInt(a);
+                const numB = parseInt(b);
+                return numA - numB;
+            });
+            
+            days.forEach(day => {
+                const daySection = document.createElement('div');
+                daySection.className = 'day-section';
+                
+                const dayTitle = document.createElement('div');
+                dayTitle.className = 'day-title';
+                dayTitle.textContent = `DAY ${day} (${Object.keys(words[day]).length}개)`;
+                daySection.appendChild(dayTitle);
+                
+                Object.entries(words[day]).sort().forEach(([english, korean]) => {
+                    const wordItemContainer = document.createElement('div');
+                    
+                    const wordItem = document.createElement('div');
+                    wordItem.className = 'word-item';
+                    
+                    const wordContent = document.createElement('div');
+                    wordContent.className = 'word-content';
+                    wordContent.textContent = `${english}: ${korean}`;
+                    
+                    const wordActions = document.createElement('div');
+                    wordActions.className = 'word-actions';
+                    
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'btn-small btn-edit';
+                    editBtn.textContent = '수정';
+                    editBtn.onclick = () => showEditForm(day, english, korean, wordItemContainer);
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'btn-small btn-delete';
+                    deleteBtn.textContent = '삭제';
+                    deleteBtn.onclick = () => deleteWord(day, english);
+                    
+                    wordActions.appendChild(editBtn);
+                    wordActions.appendChild(deleteBtn);
+                    
+                    wordItem.appendChild(wordContent);
+                    wordItem.appendChild(wordActions);
+                    
+                    const editForm = document.createElement('div');
+                    editForm.className = 'edit-form';
+                    editForm.id = `edit-${day}-${english}`;
+                    editForm.innerHTML = `
+                        <input type="text" id="edit-korean-${day}-${english}" value="${korean}" placeholder="한글 뜻">
+                        <button class="btn btn-small btn-primary" onclick="saveEdit('${day}', '${english}')">저장</button>
+                        <button class="btn btn-small btn-secondary" onclick="cancelEdit('${day}', '${english}')">취소</button>
+                    `;
+                    
+                    wordItemContainer.appendChild(wordItem);
+                    wordItemContainer.appendChild(editForm);
+                    daySection.appendChild(wordItemContainer);
+                });
+                
+                wordsList.appendChild(daySection);
+            });
+        }
+
+        function showEditForm(day, english, korean, container) {
+            const editForm = container.querySelector('.edit-form');
+            editForm.classList.add('active');
+        }
+
+        function cancelEdit(day, english) {
+            const editForm = document.getElementById(`edit-${day}-${english}`);
+            editForm.classList.remove('active');
+        }
+
+        function saveEdit(day, english) {
+            const newKorean = document.getElementById(`edit-korean-${day}-${english}`).value.trim();
+            
+            if (!newKorean) {
+                alert('한글 뜻을 입력해주세요.');
+                return;
+            }
+            
+            words[day][english] = newKorean;
+            saveWords();
+            displayWordsList();
+        }
+
+        function deleteWord(day, english) {
+            if (!confirm(`'${english}' 단어를 삭제하시겠습니까?`)) {
+                return;
+            }
+            
+            delete words[day][english];
+            
+            if (Object.keys(words[day]).length === 0) {
+                delete words[day];
+            }
+            
+            saveWords();
+            displayWordsList();
+        }
+
+        function displayDayListForView() {
+            const dayListForView = document.getElementById('dayListForView');
+            dayListForView.innerHTML = '';
+            
+            if (Object.keys(words).length === 0) {
+                dayListForView.innerHTML = '<p>저장된 단어가 없습니다.</p>';
+                return;
+            }
+            
+            const days = Object.keys(words).sort((a, b) => {
+                const numA = parseInt(a);
+                const numB = parseInt(b);
+                return numA - numB;
+            });
+            
+            days.forEach(day => {
+                const count = Object.keys(words[day]).length;
+                const dayCard = document.createElement('div');
+                dayCard.className = 'day-card';
+                dayCard.innerHTML = `
+                    <div class="day-card-title">DAY ${day}</div>
+                    <div class="day-card-count">${count}개 단어</div>
+                `;
+                dayCard.onclick = () => viewDayWords(day);
+                dayListForView.appendChild(dayCard);
+            });
+        }
+
+        function viewDayWords(day) {
+            if (!words[day] || Object.keys(words[day]).length === 0) {
+                alert('해당 DAY에 단어가 없습니다.');
+                return;
+            }
+            
+            document.getElementById('dayWordsTitle').textContent = `DAY ${day} 단어 목록 (${Object.keys(words[day]).length}개)`;
+            
+            const dayWordsList = document.getElementById('dayWordsList');
+            dayWordsList.innerHTML = '';
+            
+            Object.entries(words[day]).sort().forEach(([english, korean]) => {
+                const wordItemContainer = document.createElement('div');
+                
+                const wordItem = document.createElement('div');
+                wordItem.className = 'word-item';
+                
+                const wordContent = document.createElement('div');
+                wordContent.className = 'word-content';
+                wordContent.innerHTML = `
+                    <div class="word-english">${english}</div>
+                    <div class="word-meaning">${korean}</div>
+                `;
+                
+                const wordActions = document.createElement('div');
+                wordActions.className = 'word-actions';
+                
+                const editBtn = document.createElement('button');
+                editBtn.className = 'btn-small btn-edit';
+                editBtn.textContent = '수정';
+                editBtn.onclick = () => showEditFormDay(day, english, korean, wordItemContainer);
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn-small btn-delete';
+                deleteBtn.textContent = '삭제';
+                deleteBtn.onclick = () => deleteWordDay(day, english);
+                
+                wordActions.appendChild(editBtn);
+                wordActions.appendChild(deleteBtn);
+                
+                wordItem.appendChild(wordContent);
+                wordItem.appendChild(wordActions);
+                
+                const editForm = document.createElement('div');
+                editForm.className = 'edit-form';
+                editForm.id = `edit-day-${day}-${english}`;
+                editForm.innerHTML = `
+                    <input type="text" id="edit-day-korean-${day}-${english}" value="${korean}" placeholder="한글 뜻">
+                    <button class="btn btn-small btn-primary" onclick="saveEditDay('${day}', '${english}')">저장</button>
+                    <button class="btn btn-small btn-secondary" onclick="cancelEditDay('${day}', '${english}')">취소</button>
+                `;
+                
+                wordItemContainer.appendChild(wordItem);
+                wordItemContainer.appendChild(editForm);
+                dayWordsList.appendChild(wordItemContainer);
+            });
+            
+            showScreen('viewDayWords');
+        }
+
+        function showEditFormDay(day, english, korean, container) {
+            const editForm = container.querySelector('.edit-form');
+            editForm.classList.add('active');
+        }
+
+        function cancelEditDay(day, english) {
+            const editForm = document.getElementById(`edit-day-${day}-${english}`);
+            editForm.classList.remove('active');
+        }
+
+        function saveEditDay(day, english) {
+            const newKorean = document.getElementById(`edit-day-korean-${day}-${english}`).value.trim();
+            
+            if (!newKorean) {
+                alert('한글 뜻을 입력해주세요.');
+                return;
+            }
+            
+            words[day][english] = newKorean;
+            saveWords();
+            viewDayWords(day);
+        }
+
+        function deleteWordDay(day, english) {
+            if (!confirm(`'${english}' 단어를 삭제하시겠습니까?`)) {
+                return;
+            }
+            
+            delete words[day][english];
+            
+            if (Object.keys(words[day]).length === 0) {
+                delete words[day];
+                showScreen('selectDayForView');
+            } else {
+                saveWords();
+                viewDayWords(day);
+            }
+        }
+
+        function printDayWords() {
+            window.print();
+        }
+
+        function showMessage(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="message ${type}">${message}</div>`;
+        }
+
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const activeScreen = document.querySelector('.screen.active');
+                if (activeScreen.id === 'addWords') {
+                    addWord();
+                } else if (activeScreen.id === 'quiz') {
+                    checkAnswer();
+                }
+            }
+        });
+
+        loadWords();
+    </script>
+</body>
+</html>
