@@ -765,12 +765,7 @@
 
         const PART_OF_SPEECH_KEYWORDS = {};
 
-        function loadWords() {
-            const saved = localStorage.getItem('englishWords');
-            if (saved) {
-                words = JSON.parse(saved);
-            }
-        }
+       
 
         function saveWords() {
             localStorage.setItem('englishWords', JSON.stringify(words));
@@ -1549,6 +1544,24 @@
                 }
             }
         });
+
+ // words.json 파일이 있으면 우선 불러오고, 없으면 브라우저 저장소를 사용합니다.
+        async function loadWords() {
+            try {
+                const response = await fetch('./words.json');
+                if (response.ok) {
+                    words = await response.json();
+                    return;
+                }
+            } catch (e) {
+                console.log('words.json 파일을 찾을 수 없어 브라우저 저장소를 사용합니다.');
+            }
+
+            const saved = localStorage.getItem('englishWords');
+            if (saved) {
+                words = JSON.parse(saved);
+            }
+        }
 
         loadWords();
     </script>
