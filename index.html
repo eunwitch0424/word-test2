@@ -1552,7 +1552,7 @@
         });
 
  // words.json 파일이 있으면 우선 불러오고, 없으면 브라우저 저장소를 사용합니다.
-       async function loadWords() {
+       async function loadWordsLegacy() {
     let jsonWords = {};
     
     // 1. words.json 파일이 있으면 먼저 로드
@@ -1582,6 +1582,62 @@
         Object.assign(words[day], localWords[day]);
     }
 }
+
+        // Override the legacy loader: words.json is the shared source of truth.
+        async function loadWords() {
+            let jsonWords = {};
+
+            try {
+                const wordsUrl = new URL('./words.json', window.location.href);
+                // A unique URL avoids stale mobile/CDN cache entries. `no-store` also
+                // asks browsers not to reuse a previously cached response.
+                wordsUrl.searchParams.set('_', Date.now().toString());
+                const response = await fetch(wordsUrl.href, {
+                    cache: 'no-store',
+                    credentials: 'same-origin'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`words.json request failed: ${response.status}`);
+                }
+
+                const parsed = await response.json();
+                if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+                    throw new Error('words.json must contain an object.');
+                }
+                jsonWords = parsed;
+            } catch (error) {
+                console.warn('Unable to load the latest words.json; using local data instead.', error);
+            }
+
+            let localWords = {};
+            try {
+                const saved = localStorage.getItem('englishWords');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                        localWords = parsed;
+                    }
+                }
+            } catch (error) {
+                // A malformed old value must not prevent the application from starting.
+                console.warn('Unable to read saved words from local storage.', error);
+            }
+
+            // Preserve words that exist only on this device, then let the latest JSON
+            // overwrite matching entries so stale localStorage cannot hide new data.
+            words = {};
+            for (const [day, dayWords] of Object.entries(localWords)) {
+                if (dayWords && typeof dayWords === 'object' && !Array.isArray(dayWords)) {
+                    words[day] = { ...dayWords };
+                }
+            }
+            for (const [day, dayWords] of Object.entries(jsonWords)) {
+                if (dayWords && typeof dayWords === 'object' && !Array.isArray(dayWords)) {
+                    words[day] = { ...(words[day] || {}), ...dayWords };
+                }
+            }
+        }
 
 window.addEventListener('DOMContentLoaded', async () => {
     await loadWords();
