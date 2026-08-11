@@ -1546,24 +1546,36 @@
         });
 
  // words.json 파일이 있으면 우선 불러오고, 없으면 브라우저 저장소를 사용합니다.
-        async function loadWords() {
-            try {
-                const response = await fetch('./words.json');
-                if (response.ok) {
-                    words = await response.json();
-                    return;
-                }
-            } catch (e) {
-                console.log('words.json 파일을 찾을 수 없어 브라우저 저장소를 사용합니다.');
-            }
-
-            const saved = localStorage.getItem('englishWords');
-            if (saved) {
-                words = JSON.parse(saved);
-            }
+       async function loadWords() {
+    let jsonWords = {};
+    
+    // 1. words.json 파일이 있으면 먼저 로드
+    try {
+        const response = await fetch('./words.json');
+        if (response.ok) {
+            jsonWords = await response.json();
         }
+    } catch (e) {
+        console.log('words.json 파일을 찾을 수 없어 브라우저 저장소만 사용합니다.');
+    }
 
-        loadWords();
+    // 2. 브라우저 저장소(localStorage)에 저장된 데이터 가져오기
+    const saved = localStorage.getItem('englishWords');
+    let localWords = {};
+    if (saved) {
+        localWords = JSON.parse(saved);
+    }
+
+    // 3. words.json 데이터와 localStorage 데이터를 합치기 (localStorage 데이터가 우선)
+    words = { ...jsonWords };
+    
+    for (const day in localWords) {
+        if (!words[day]) {
+            words[day] = {};
+        }
+        Object.assign(words[day], localWords[day]);
+    }
+}
     </script>
 </body>
 </html>
