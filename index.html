@@ -1576,6 +1576,10 @@
         Object.assign(words[day], localWords[day]);
     }
 }
+
+window.addEventListener('DOMContentLoaded', async () => {
+    await loadWords();
+});
     </script>
 </body>
 </html>
