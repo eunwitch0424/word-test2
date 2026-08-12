@@ -564,14 +564,28 @@
             document.getElementById('loading').style.display = show ? 'flex' : 'none';
         }
 
+        // 1. word.json 기본 로드 후 구글 스프레드시트 데이터와 병합
         async function loadWords() {
             showLoading(true);
+            words = {}; // 초기화
+
+            // Step A: word.json 로드
+            try {
+                const jsonResponse = await fetch('word.json');
+                if (jsonResponse.ok) {
+                    const jsonData = await jsonResponse.json();
+                    words = jsonData;
+                }
+            } catch (e) {
+                console.warn("word.json 파일을 불러올 수 없거나 존재하지 않습니다.", e);
+            }
+
+            // Step B: 구글 스프레드시트 데이터 불러와서 추가/덮어쓰기
             try {
                 const response = await fetch(GOOGLE_SCRIPT_URL);
                 if (response.ok) {
-                    const data = await response.json();
-                    words = {};
-                    data.forEach(row => {
+                    const sheetData = await response.json();
+                    sheetData.forEach(row => {
                         const day = String(row[0]).trim();
                         const english = String(row[1]).trim();
                         const korean = String(row[2]).trim();
@@ -588,6 +602,7 @@
             }
         }
 
+        // 2. 새로운 단어를 구글 스프레드시트에 저장
         async function saveWordToSheet(payload) {
             showLoading(true);
             try {
@@ -597,10 +612,12 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
+                
+                // 저장 후 최신 데이터 동기화
                 await loadWords();
                 return true;
             } catch (e) {
-                console.error("저장 실패:", e);
+                console.error("구글 시트 저장 실패:", e);
                 showLoading(false);
                 return false;
             }
